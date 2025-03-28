@@ -1,0 +1,15 @@
+# Compiled binaries
+*.exe
+*.o
+*.obj
+
+# IDE components
+.vscode
+
+# Libraries
+*.dll
+*.so
+*.dylib
+
+# Build directories
+build/
