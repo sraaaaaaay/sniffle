@@ -1,22 +1,11 @@
+/**
+ * @file capture.h
+ * @author saul
+ * @brief program entry
+ *
+ */
+
 #include "capture.h"
-
-
-/*
-packet_analyzer/
-├── include/
-│   ├── capture.h         # Packet capture functionality declarations
-│   ├── parser.h          # Protocol parsing declarations
-│   ├── analyzer.h        # Analysis functionality declarations
-│   └── display.h         # Output and display declarations
-├── src/
-│   ├── capture.c         # Packet capture implementation
-│   ├── parser.c          # Protocol parsing implementation
-│   ├── analyzer.c        # Analysis implementation
-│   ├── display.c         # Output and display implementation
-│   └── main.c            # Main program entry point
-├── Makefile              # Build system
-└── README.md             # Project documentation*/
-
 
 int main() {
     char errbuf[PCAP_ERRBUF_SIZE];

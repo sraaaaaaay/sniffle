@@ -2,11 +2,7 @@
  * @file capture.c
  * @author saul
  * @brief Packet capture implementation
- * @version 0.1
- * @date 2025-03-29
- * 
- * @copyright Copyright (c) 2025
- * 
+ *
  */
 #include "common.h"
 #include "capture.h"

@@ -1,26 +1,28 @@
 /**
- * @file common.h
- * @brief Common includes and definitions for the packet analyzer
+ * @file capture.h
+ * @author saul
+ * @brief common header
+ *
  */
 
 #ifndef COMMON_H
 #define COMMON_H
 
-// Standard library includes
+/* standard stuff */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
-// Windows-specific includes
+/* Needed for windows */
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #pragma comment(lib, "wpcap.lib")
 #pragma comment(lib, "ws2_32.lib")
-#endif 
+#endif
 
-// libpcap includes
+/* libpcap */
 #include <pcap.h>
 
 /* "Magic numbers" */
@@ -36,9 +38,5 @@
 #define ETHERTYPE_IPV4 0x0800
 #define ETHERTYPE_ARP 0x0806
 #define ETHERTYPE_IPV6 0x86DD
-
-#define UNUSED(x) (void)(x)
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 #endif
