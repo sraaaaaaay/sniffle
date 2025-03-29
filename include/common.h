@@ -8,19 +8,26 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+/* Needed for windows */
+#ifdef _WIN32
+#define _WIN32_WINNT 0x0600
+#define NTDDI_VERSION NTDDI_VISTA
+#define WIN32_LEAN_AND_MEAN
+
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+
+#pragma comment(lib, "wpcap.lib")
+#pragma comment(lib, "ws2_32.lib")
+#endif
+
 /* standard stuff */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
-/* Needed for windows */
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma comment(lib, "wpcap.lib")
-#pragma comment(lib, "ws2_32.lib")
-#endif
 
 /* libpcap */
 #include <pcap.h>
