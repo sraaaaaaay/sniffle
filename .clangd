@@ -1,7 +1,7 @@
 CompileFlags:
   Add: 
     - "-I./include"
-    - "-IC:/Program Files/Npcap/SDK/Include"
+    - "-IC:/npcap-sdk/Include"
     - "-std=c11"
     - "-Wall"
     - "-Wextra"
