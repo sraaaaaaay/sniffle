@@ -1,0 +1,21 @@
+CompileFlags:
+  Add: 
+    - "-I./include"
+    - "-IC:/Program Files/Npcap/SDK/Include"
+    - "-std=c11"
+    - "-Wall"
+    - "-Wextra"
+
+Diagnostics:
+  UnusedIncludes: Strict
+  ClangTidy:
+    Add: [modernize*, readability*, performance*]
+    Remove: [modernize-use-trailing-return-type]
+
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: Yes
+
+Hover:
+  ShowAKA: Yes
