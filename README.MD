@@ -9,5 +9,7 @@
 
 ## Building
     1. run the batchfile
-    2. run the executable
+
+## Usage
+    1. ./sniffle.exe -o <output.txt>
 
