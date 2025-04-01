@@ -8,10 +8,6 @@
 
 
 ## Building
-    1. git clone https://github.com/sraaaaaaay/sniffle
-    2. cd sniffle
-    3. make
+    1. run the batchfile
+    2. run the executable
 
-
-## Troubleshooting
-    Make sure to run as administrator, or packets will not be captured.
