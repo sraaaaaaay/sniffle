@@ -5,113 +5,86 @@
  *
  */
 #include "capture.h"
+#include "ui.h"
 
-
-struct eth_header {
-    /**
-     * @brief Ethernet header. Check eth_type against one of: (ETHERTYPE_IPV4, ETHERTYPE_ARP, ETHERTYPE_IPV6)
-     *
-     */
-    u_char destination_mac[NUM_MAC_BYTES];
-    u_char source_mac[NUM_MAC_BYTES];
-    u_short eth_type;
-};
-
-
-struct ip_header {
-    /**
-     * @brief IPv4 header. need to use inet_ntop() for string repr of address.
-     *
-     */
-    uint8_t v_ihl;
-    uint8_t type_of_service;
-    uint16_t total_length;
-    uint16_t identification;
-    uint16_t flags_fragment_offset;
-    uint8_t ttl;
-    uint8_t protocol;
-    uint16_t crc;
-    struct in_addr source_addr;
-    struct in_addr destination_addr;
-};
-
-struct tcp_header {
-    uint8_t source_port;
-    uint8_t destination_port;
-    uint32_t sequence_number;
-    uint32_t ack_number;
-    uint8_t offset_reserved;
-    uint8_t flags;
-    uint16_t window;
-    uint16_t checksum;
-    uint16_t urgent_pointer;
-};
-
-void print_mac_address(const char* party, const u_char* mac) {
-    printf("%s MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", party, mac[0], mac[1],
-    mac[2], mac[3], mac[4], mac[5]);
-}
-
-void print_ip_address(const char* party, const char* ip_address) {
-    printf("%s IP: %s\n", party, ip_address);
-}
-
+/**
+ * @brief Packet handler for npcap. Does header-by-header parsing of the
+ * packets Ethernet | IP | Transport (tcp, udp) | payload
+ *
+ */
 void packet_handler(u_char* user_data, const struct pcap_pkthdr* pkthdr, const u_char* packet) {
-    /**
-     * @brief Packet handler for npcap. Header-by-header parsing & printout of
-     * network packet.
-     * Ethernet | IP | Transport (tcp, udp) | payload
-     *
-     */
+    ui_context* ctx = (ui_context*)user_data;
+    update_ui_stats(ctx);
+    char packet_info[512];
+    int len = 0;
 
     /* General packet info */
-    printf("Packet captured at: %s", ctime((const time_t*)&pkthdr->ts.tv_sec));
-    printf("Packet length: %d\n", pkthdr->len);
-    printf("----------------------------\n");
+    len += sprintf(packet_info + len, "\nPacket captured at: %s",
+    ctime((const time_t*)&pkthdr->ts.tv_sec));
+    len += sprintf(packet_info + len, "Packet length: %d\n", pkthdr->len);
+    len += sprintf(packet_info + len, "-----------------------------\n");
+
     /* Packet is too small for ethernet header*/
-    if (pkthdr->len < sizeof(struct eth_header)) {
+    if (pkthdr->len < sizeof(eth_header)) {
         return;
     }
 
     /* Ethernet info */
-    struct eth_header* eth = (struct eth_header*)packet;
-    uint16_t ethertype     = ntohs(eth->eth_type);
-    printf("\n-- Ethernet Header --\n");
-    print_mac_address("Source", eth->source_mac);
-    print_mac_address("Destination", eth->destination_mac);
-    printf("Ethertype: 0x%04x\n", ethertype);
+    ctx->num_eth++;
+    eth_header* eth    = (eth_header*)packet;
+    uint16_t ethertype = ntohs(eth->eth_type);
+    len += sprintf(packet_info + len, "\n-- Ethernet Header --\n");
+    const u_char* src_mac  = eth->source_mac;
+    const u_char* dest_mac = eth->destination_mac;
+
+    len += sprintf(packet_info + len, "%s MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", "Source",
+    src_mac[0], src_mac[1], src_mac[2], src_mac[3], src_mac[4], src_mac[5]);
+
+    len += sprintf(packet_info + len, "%s MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", "Destination",
+    dest_mac[0], dest_mac[1], dest_mac[2], dest_mac[3], dest_mac[4], dest_mac[5]);
+
+    len += sprintf(packet_info + len, "Ethertype: 0x%04x\n", ethertype);
 
     /* Ipv4 info */
     if (ethertype == ETHERTYPE_IPV4) {
-        struct ip_header* ip_header =
-        (struct ip_header*)(packet + sizeof(struct eth_header));
-        printf("\n-- IPv4 Header --\n");
+        ctx->num_eth--;
+        ctx->num_ip++;
+        ip_header* ip_hdr = (ip_header*)(packet + sizeof(eth_header));
+        len += sprintf(packet_info + len, "\n-- IPv4 Header --\n");
+
         char src_ip[INET_ADDRSTRLEN];
         char dest_ip[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &(ip_header->source_addr), src_ip, INET_ADDRSTRLEN);
-        inet_ntop(AF_INET, &(ip_header->source_addr), src_ip, INET_ADDRSTRLEN);
-        print_ip_address("Source", src_ip);
-        print_ip_address("Source", dest_ip);
+        strcpy(src_ip, inet_ntoa(ip_hdr->source_addr));
+        strcpy(dest_ip, inet_ntoa(ip_hdr->destination_addr));
+        len += sprintf(packet_info + len, "Source IP: %s\n", src_ip);
+        len += sprintf(packet_info + len, "Destination IP: %s", dest_ip);
 
         /* Transport info */
-        if (ip_header->protocol == PROTO_TCP) {
-            struct tcp_header* tcp_header = (struct tcp_header*)(packet +
-            sizeof(struct eth_header) + ((ip_header->v_ihl & 4) * 4));
-            printf("\n-- TCP Header --\n");
-            printf("Source port: %d", tcp_header->source_port);
+        if (ip_hdr->protocol == PROTO_TCP) {
+            ctx->num_ip--;
+            ctx->num_tcp++;
+            tcp_header* tcp_hdr =
+            (tcp_header*)(packet + sizeof(eth_header) + ((ip_hdr->v_ihl & 4) * 4));
+            len += sprintf(packet_info + len, "\n TCP Header --\n");
+            len += sprintf(packet_info + len, "Source port: %d\n", tcp_hdr->source_port);
+            len += sprintf(packet_info + len, "Destination port: %d\n", tcp_hdr->destination_port);
+            fprintf(ctx->output_file, "\n-- TCP Header --\n");
+            fprintf(ctx->output_file, "Source port: %d\n", tcp_hdr->source_port);
+            fprintf(ctx->output_file, "Destination port: %d\n", tcp_hdr->destination_port);
         }
+        /* Print out the final string */
+        fprintf(ctx->output_file, packet_info);
     }
 
-
     // TODO:
+    // [X] command line parsing for file output
+    // [X] file output
+    // [X] text GUI progress bar etc
+    // [X] code neatening / string-building
     //
-    //  [X] Get EtherType & convert from network to host byte order
-    //  [X] Get IP header
-    //  [X] Convert IP addresses to string
-    //  [X] Print IP header information
-    //  [ ] Identify source of build failure - ws2tcpip/inet_top() include issues
+    // [ ] Identify source of build failure - ws2tcpip/inet_top() include issues
 
     // Process based on IP protocol (TCP/UDP/ICMP):
-    //  [ ] Display info
+    //  [X] Display info
     //
 }
